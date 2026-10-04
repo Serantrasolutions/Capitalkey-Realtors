@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
+import { useRef, useState } from "react";
 
 type ServiceType = "rent" | "sale" | null;
 
@@ -124,6 +124,9 @@ export default function PropertySearch() {
   const [service, setService] =
     useState<ServiceType>(null);
 
+  const propertyOptionsRef =
+    useRef<HTMLDivElement>(null);
+
   const selectedProperties =
     service === "rent"
       ? rentPropertyTypes
@@ -131,70 +134,120 @@ export default function PropertySearch() {
         ? salePropertyTypes
         : [];
 
+  /* =========================================================
+     RENT / SALE SELECT + SMOOTH SCROLL
+  ========================================================= */
+
+  function selectService(
+    selectedService: "rent" | "sale",
+  ) {
+    setService(selectedService);
+
+    /*
+      Wait until React displays the property options,
+      then scroll DOWN to that section.
+
+      We check the current scroll position so it does
+      not suddenly jump upward.
+    */
+    window.setTimeout(() => {
+      const section =
+        propertyOptionsRef.current;
+
+      if (!section) {
+        return;
+      }
+
+      const sectionPosition =
+        section.getBoundingClientRect().top +
+        window.scrollY;
+
+      const offset =
+        window.innerWidth < 640 ? 20 : 35;
+
+      const targetPosition =
+        sectionPosition - offset;
+
+      /*
+        Only scroll if the target is below
+        the current position.
+      */
+      if (
+        targetPosition >
+        window.scrollY + 10
+      ) {
+        window.scrollTo({
+          top: targetPosition,
+          behavior: "smooth",
+        });
+      }
+    }, 80);
+  }
+
+  const mainCard =
+    "relative flex min-h-[70px] flex-col justify-center overflow-hidden rounded-xl border px-3 py-2.5 text-center transition-all duration-300 sm:min-h-[120px] sm:items-start sm:justify-start sm:rounded-2xl sm:px-4 sm:py-4 sm:text-left xl:min-h-[135px]";
+
   return (
     <div className="mx-auto w-full max-w-7xl">
-      {/* =====================================================
-          MAIN PROPERTY JOURNEY
-      ===================================================== */}
+      <div className="relative mx-auto max-w-7xl overflow-hidden rounded-[22px] border border-white/15 bg-white/[0.06] px-4 py-5 shadow-xl shadow-black/10 backdrop-blur-md sm:rounded-[28px] sm:px-6 sm:py-7 lg:px-7">
+        {/* BACKGROUND LIGHT */}
+        <div className="pointer-events-none absolute -left-24 -top-24 h-56 w-56 rounded-full bg-blue-300/[0.05] blur-3xl" />
 
-      <div className="relative mx-auto max-w-5xl overflow-hidden rounded-[28px] border border-white/15 bg-white/[0.06] px-5 py-7 shadow-xl shadow-black/10 backdrop-blur-md sm:px-7">
-        {/* BACKGROUND EFFECTS */}
-
-        <div className="pointer-events-none absolute -left-32 -top-32 h-64 w-64 rounded-full bg-blue-300/[0.05] blur-3xl" />
-
-        <div className="pointer-events-none absolute -bottom-32 -right-32 h-64 w-64 rounded-full bg-white/[0.04] blur-3xl" />
+        <div className="pointer-events-none absolute -bottom-24 -right-24 h-56 w-56 rounded-full bg-white/[0.04] blur-3xl" />
 
         {/* =================================================
             HEADER
         ================================================= */}
 
         <div className="relative text-center">
-          <p className="text-[10px] font-bold tracking-[0.3em] text-slate-400">
+          <p className="text-[7px] font-bold tracking-[0.3em] text-slate-400 sm:text-[10px]">
             PROPERTY JOURNEY
           </p>
 
-          <h2 className="mt-2 font-serif text-2xl text-white sm:text-3xl">
+          <h2 className="mt-1.5 font-serif text-lg text-white sm:mt-2 sm:text-3xl">
             What are you looking to do?
           </h2>
 
-          <p className="mx-auto mt-2 max-w-xl text-xs leading-5 text-slate-400 sm:text-sm">
+          <p className="mx-auto mt-1 max-w-xl text-[9px] leading-4 text-slate-400 sm:mt-2 sm:text-sm">
             Choose the option that matches your property requirement.
           </p>
         </div>
 
         {/* =================================================
-            4 MAIN OPTIONS
+            MAIN OPTIONS
         ================================================= */}
 
-        <div className="relative mt-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+        <div className="relative mt-4 grid grid-cols-2 gap-2 sm:mt-6 sm:gap-3 md:grid-cols-3 xl:grid-cols-5">
           {/* RENT */}
 
           <button
             type="button"
             aria-pressed={service === "rent"}
-            onClick={() => setService("rent")}
-            className={`cursor-pointer rounded-2xl border px-4 py-4 text-left transition-all duration-300 ${
+            onClick={() =>
+              selectService("rent")
+            }
+            className={`${mainCard} ${
               service === "rent"
                 ? "border-white bg-white text-[#071a3b] shadow-lg shadow-black/10"
-                : "border-white/10 bg-white/[0.055] text-white hover:-translate-y-0.5 hover:border-white/25 hover:bg-white/[0.1]"
+                : "border-white/10 bg-white/[0.055] text-white hover:border-white/25 hover:bg-white/[0.1]"
             }`}
           >
             <p
-              className={`text-[9px] font-bold uppercase tracking-[0.2em] ${
+              className={`mb-1 text-[6px] font-bold uppercase tracking-[0.18em] sm:text-[8px] ${
                 service === "rent"
                   ? "text-slate-500"
-                  : "text-slate-400"
+                  : "text-slate-500 sm:text-slate-400"
               }`}
             >
               Find Property
             </p>
 
-            <h3 className="mt-2 text-lg font-bold">
+            <h3 className="text-sm font-bold leading-5 sm:mt-1 sm:text-lg">
               Rent
             </h3>
 
             <p
-              className={`mt-2 text-[11px] leading-5 ${
+              className={`mt-2 hidden text-[11px] leading-5 sm:block ${
                 service === "rent"
                   ? "text-slate-500"
                   : "text-slate-400"
@@ -202,6 +255,10 @@ export default function PropertySearch() {
             >
               Browse properties available for rent.
             </p>
+
+            {service === "rent" && (
+              <span className="absolute right-2 top-2 h-1.5 w-1.5 rounded-full bg-[#071a3b] sm:right-3 sm:top-3" />
+            )}
           </button>
 
           {/* SALE */}
@@ -209,29 +266,31 @@ export default function PropertySearch() {
           <button
             type="button"
             aria-pressed={service === "sale"}
-            onClick={() => setService("sale")}
-            className={`cursor-pointer rounded-2xl border px-4 py-4 text-left transition-all duration-300 ${
+            onClick={() =>
+              selectService("sale")
+            }
+            className={`${mainCard} ${
               service === "sale"
                 ? "border-white bg-white text-[#071a3b] shadow-lg shadow-black/10"
-                : "border-white/10 bg-white/[0.055] text-white hover:-translate-y-0.5 hover:border-white/25 hover:bg-white/[0.1]"
+                : "border-white/10 bg-white/[0.055] text-white hover:border-white/25 hover:bg-white/[0.1]"
             }`}
           >
             <p
-              className={`text-[9px] font-bold uppercase tracking-[0.2em] ${
+              className={`mb-1 text-[6px] font-bold uppercase tracking-[0.18em] sm:text-[8px] ${
                 service === "sale"
                   ? "text-slate-500"
-                  : "text-slate-400"
+                  : "text-slate-500 sm:text-slate-400"
               }`}
             >
               Find Property
             </p>
 
-            <h3 className="mt-2 text-lg font-bold">
+            <h3 className="text-sm font-bold leading-5 sm:mt-1 sm:text-lg">
               Sale
             </h3>
 
             <p
-              className={`mt-2 text-[11px] leading-5 ${
+              className={`mt-2 hidden text-[11px] leading-5 sm:block ${
                 service === "sale"
                   ? "text-slate-500"
                   : "text-slate-400"
@@ -239,23 +298,27 @@ export default function PropertySearch() {
             >
               Browse properties currently available for sale.
             </p>
+
+            {service === "sale" && (
+              <span className="absolute right-2 top-2 h-1.5 w-1.5 rounded-full bg-[#071a3b] sm:right-3 sm:top-3" />
+            )}
           </button>
 
           {/* RENT OUT */}
 
           <Link
             href="/inquiry?service=rent"
-            className="rounded-2xl border border-white/10 bg-white/[0.055] px-4 py-4 text-left text-white transition-all duration-300 hover:-translate-y-0.5 hover:border-white/25 hover:bg-white/[0.1]"
+            className={`${mainCard} border-white/10 bg-white/[0.055] text-white hover:border-white/25 hover:bg-white/[0.1]`}
           >
-            <p className="text-[9px] font-bold uppercase tracking-[0.2em] text-slate-400">
+            <p className="mb-1 text-[6px] font-bold uppercase tracking-[0.18em] text-slate-500 sm:text-[8px] sm:text-slate-400">
               Property Owner
             </p>
 
-            <h3 className="mt-2 text-lg font-bold">
+            <h3 className="text-sm font-bold leading-5 sm:mt-1 sm:text-lg">
               Rent Out
             </h3>
 
-            <p className="mt-2 text-[11px] leading-5 text-slate-400">
+            <p className="mt-2 hidden text-[11px] leading-5 text-slate-400 sm:block">
               Submit your property to find a tenant.
             </p>
           </Link>
@@ -264,63 +327,83 @@ export default function PropertySearch() {
 
           <Link
             href="/inquiry?service=sell"
-            className="rounded-2xl border border-white/10 bg-white/[0.055] px-4 py-4 text-left text-white transition-all duration-300 hover:-translate-y-0.5 hover:border-white/25 hover:bg-white/[0.1]"
+            className={`${mainCard} border-white/10 bg-white/[0.055] text-white hover:border-white/25 hover:bg-white/[0.1]`}
           >
-            <p className="text-[9px] font-bold uppercase tracking-[0.2em] text-slate-400">
+            <p className="mb-1 text-[6px] font-bold uppercase tracking-[0.18em] text-slate-500 sm:text-[8px] sm:text-slate-400">
               Property Owner
             </p>
 
-            <h3 className="mt-2 text-lg font-bold">
+            <h3 className="text-sm font-bold leading-5 sm:mt-1 sm:text-lg">
               Sell
             </h3>
 
-            <p className="mt-2 text-[11px] leading-5 text-slate-400">
+            <p className="mt-2 hidden text-[11px] leading-5 text-slate-400 sm:block">
               Submit your property for sale through Capitalkey.
+            </p>
+          </Link>
+
+          {/* NEW DEVELOPMENT */}
+
+          <Link
+            href="/new-developments"
+            className={`${mainCard} col-span-2 border-white/10 bg-white/[0.055] text-white hover:border-white/25 hover:bg-white/[0.1] sm:col-span-1`}
+          >
+            <p className="mb-1 text-[6px] font-bold uppercase tracking-[0.18em] text-slate-500 sm:text-[8px] sm:text-slate-400">
+              Discover
+            </p>
+
+            <h3 className="text-sm font-bold leading-5 sm:mt-1 sm:text-lg">
+              New Development
+            </h3>
+
+            <p className="mt-2 hidden text-[11px] leading-5 text-slate-400 sm:block">
+              Explore newly developed property projects.
             </p>
           </Link>
         </div>
 
         {/* =================================================
-            PROPERTY TYPES
+            RENT / SALE PROPERTY TYPES
         ================================================= */}
 
         {service !== null && (
-          <div className="relative mt-8 border-t border-white/10 pt-7">
-            {/* TITLE */}
+          <div
+            ref={propertyOptionsRef}
+            className="relative mt-4 border-t border-white/10 pt-4 sm:mt-8 sm:pt-7"
+          >
+            {/* HEADING */}
 
             <div className="text-center">
-              <p className="text-xs font-bold tracking-[0.27em] text-white">
+              <p className="text-[8px] font-bold tracking-[0.22em] text-white sm:text-xs sm:tracking-[0.27em]">
                 {service === "rent"
                   ? "FIND PROPERTY FOR RENT"
                   : "FIND PROPERTY FOR SALE"}
               </p>
 
-              <p className="mt-2 text-xs text-slate-400 sm:text-sm">
+              <p className="mt-1 text-[9px] leading-4 text-slate-400 sm:mt-2 sm:text-sm">
                 {service === "rent"
                   ? "Choose the type of rental property you are looking for."
                   : "Choose the type of property you are interested in buying."}
               </p>
             </div>
 
-            {/* PROPERTY CARDS */}
+            {/* PROPERTY GRID */}
 
-            <div className="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+            <div className="mt-3 grid grid-cols-2 gap-2 sm:mt-5 sm:gap-3 lg:grid-cols-3 xl:grid-cols-4">
               {selectedProperties.map(
                 (property) => (
                   <Link
                     key={property.href}
                     href={property.href}
-                    className="flex min-h-[78px] items-center rounded-xl border border-white/10 bg-white/[0.07] px-4 py-3 text-left transition-all duration-300 hover:-translate-y-0.5 hover:border-white/25 hover:bg-white/[0.12]"
+                    className="relative flex min-h-[58px] flex-col justify-center overflow-hidden rounded-lg border border-white/10 bg-white/[0.07] px-3 py-2 text-left transition-all duration-300 hover:border-white/25 hover:bg-white/[0.12] sm:min-h-[78px] sm:rounded-xl sm:px-4 sm:py-3"
                   >
-                    <div>
-                      <h3 className="font-serif text-base font-semibold text-white">
-                        {property.title}
-                      </h3>
+                    <h3 className="font-serif text-[12px] font-semibold leading-4 text-white sm:text-base sm:leading-5">
+                      {property.title}
+                    </h3>
 
-                      <p className="mt-1 text-[11px] leading-4 text-slate-400">
-                        {property.description}
-                      </p>
-                    </div>
+                    <p className="mt-1 hidden text-[11px] leading-4 text-slate-400 sm:block">
+                      {property.description}
+                    </p>
                   </Link>
                 ),
               )}
